@@ -37,8 +37,10 @@ def main():
     logger.info(f'args: {args}')
 
     if args.username is not None and args.password is not None:
+        logger.info('reading username and password from command line arguments')
         username, password = args.username, args.password
     else:
+        logger.info(f'reading username and password from json "{args.secrets}".')
         with open(args.secrets, 'r', encoding='utf-8') as f:
             j = json.load(f)
         username, password = str(j['username']), str(j['password'])
