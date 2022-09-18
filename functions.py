@@ -70,7 +70,7 @@ def http_get(url: str, params: dict = None, headers: dict = None) -> str:
 
 def http_post(url: str, params: dict = None, data: dict = None, headers: dict = None) -> str:
     '''
-    Wrapped HTTP GET.
+    Wrapped HTTP POST.
     Don't use `requests` library because sometimes this repo runs without network connection.
     So installing `requests` may not be handy all the time.
     :see: https://blog.csdn.net/Asura_____/article/details/123320731
@@ -209,7 +209,7 @@ def login(username: str, password: str):
     global BASE_URL, HEADERS
 
     ip = request_ip()
-    logger.info(f'ip (server reported) is {ip}')
+    logger.info(f'ip is {ip}')
 
     token = request_token(username, ip)
     logger.info(f'token is {token}')
@@ -220,12 +220,12 @@ def login(username: str, password: str):
         logger.info('login requested.')
         if j['suc_msg'] == 'login_ok':
             logger.info('login success!')
-            logger.info(f'ip is {j["online_ip"]}')
-            logger.info(f'username is {j["username"]}')
-            logger.info(f'real name is {j["real_name"]}')
+            logger.info(f'ip is {j["online_ip"]}\n'
+                        f'username is {j["username"]}\n'
+                        f'real name is {j["real_name"]}')
         elif j['suc_msg'] == 'ip_already_online_error':
             logger.error('login failed.')
-            logger.error(f'server reported this ip is already online, cannot login twice.')
+            logger.error('server reported this ip is already online, cannot login twice.')
     else:
         logger.error('server denied login request, response json as follows:')
         logger.error(json.dumps(j, ensure_ascii=False, indent=4))
@@ -249,6 +249,7 @@ def request_client_id(username: str) -> str:
 
 
 def request_logout(username:str):
+    '''todo'''
     global BASE_URL, HEADERS
     url = f'{BASE_URL}/v1/auth/online_device/drop'
     data = {
@@ -272,5 +273,6 @@ def request_logout(username:str):
 
 def logout(username:str):
     '''todo'''
-    client_id :str = request_client_id(username)
-    request_logout(username)
+    raise NotImplementedError
+    # client_id :str = request_client_id(username)
+    # request_logout(username)
