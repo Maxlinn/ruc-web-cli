@@ -4,7 +4,11 @@ Command line interface for login/logout campus network of RUC, Renmin University
 
 This document is written on Sept 17th 2022.
 
-## 0x00 May I Use This Tool for My School (other than RUC)?
+This tool **does NOT need any third-party librarys, just pure python3 interpreter**, since you may run without(before) you have any internet connection. Actually, i run this tool on my router, whose OS is OpenWRT and arch is ARM, it works pefectly well.
+
+![image-20220920123027733](README.assets/image-20220920123027733.png)
+
+## 0x00 ⭐ Any Gateway Develeoped by Shenlan Tech co.,ltd Can Have A Try
 
 Yes. As long as your school uses gateway developed by Shenlan Tech co.,ltd, you can have a try. 
 
