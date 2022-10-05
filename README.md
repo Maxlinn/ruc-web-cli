@@ -2,6 +2,8 @@
 
 Command line interface for login/logout campus network of RUC, Renmin University of China, where gateway is developed by Shenlan Tech co.,ltd since 2020. 
 
+**Any Gateway Develeoped by Shenlan Tech co.,ltd Can Have A Try, read helps below.**
+
 This document is written on Sept 17th 2022.
 
 This tool **does NOT need any third-party librarys, just pure python3 interpreter**, since you may run without(before) you have any internet connection. Actually, i run this tool on my router, whose OS is OpenWRT and arch is ARM, it works pefectly well.
@@ -12,7 +14,7 @@ This tool **does NOT need any third-party librarys, just pure python3 interprete
 
 Yes. As long as your school uses gateway developed by Shenlan Tech co.,ltd, you can have a try. 
 
-You simply need to change `BASE_URL` in `functions.py`.
+You simply need to pass your school portal by `--portal PORTAL_URL`, by default, portal is `https://go.ruc.edu.cn` for RUC.
 
 ## 0x01 Why Another CLI Tool for RUC Network Control
 
@@ -40,7 +42,7 @@ by default, `--secrets` uses `./secrets.json`. if you follow this manner, just r
 
 ## 0x03 References
 
-- Protocol analysis, RUC is slightly different: https://blog.csdn.net/qq_41797946/article/details/89417722
+- Protocol analysis: https://blog.csdn.net/qq_41797946/article/details/89417722
 - Referenced implementation: https://github.com/huxiaofan1223/jxnu_srun
 
 ## 0x04 Third Party Code Declaration

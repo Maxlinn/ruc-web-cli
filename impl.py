@@ -19,8 +19,13 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.26 '
                   'Safari/537.36 '
 }
-BASE_URL = 'https://go.ruc.edu.cn'
+PORTAL_BASE_URL = ''
 logger = logging.getLogger(__name__)
+
+
+def set_portal_base_url(url: str):
+    global PORTAL_BASE_URL
+    PORTAL_BASE_URL = url
 
 
 def http_add_params_to_url(url: str, params: dict) -> str:
@@ -100,8 +105,8 @@ def request_ip() -> str:
     '''
     Get IP address of this machine, will be used in later login.
     '''
-    global BASE_URL, HEADERS
-    url = f'{BASE_URL}/'
+    global PORTAL_BASE_URL, HEADERS
+    url = f'{PORTAL_BASE_URL}/'
     text = http_get(url, headers=HEADERS)
     # a HTML document
     config: str = re.search(r'var CONFIG = ({.*})', text, flags=re.S).group(1)
@@ -113,10 +118,10 @@ def request_token(username: str, ip: str) -> str:
     '''
     Get token for a session.
     '''
-    global BASE_URL, HEADERS
+    global PORTAL_BASE_URL, HEADERS
 
     time_nounce: int = int(time.time() * 1000)
-    url = f'{BASE_URL}/cgi-bin/get_challenge'
+    url = f'{PORTAL_BASE_URL}/cgi-bin/get_challenge'
     params = {
         "callback": f'jQuery112406382209524580216_{time_nounce}',
         "username": username,
@@ -135,7 +140,7 @@ def request_token(username: str, ip: str) -> str:
 
 def build_login_params(username: str, password: str, ip: str, token: str) -> dict:
     # constant params
-    constant_params = {
+    constants = {
         'acid': '1',
         'enc_ver': 'srun_bx1',
         'n': '200',
@@ -147,8 +152,8 @@ def build_login_params(username: str, password: str, ip: str, token: str) -> dic
         "username": username,
         "password": password,
         "ip": ip,
-        "acid": constant_params['acid'],
-        "enc_ver": constant_params['enc_ver']
+        "acid": constants['acid'],
+        "enc_ver": constants['enc_ver']
     }
     flatten_info: str = str(info)
     flatten_info: str = re.sub("'", '"', flatten_info)
@@ -163,10 +168,10 @@ def build_login_params(username: str, password: str, ip: str, token: str) -> dic
     chksum_segments = [
         token, username,
         token, password_md5,
-        token, constant_params['acid'],
+        token, constants['acid'],
         token, ip,
-        token, constant_params['n'],
-        token, constant_params['type'],
+        token, constants['n'],
+        token, constants['type'],
         token, encoded_info_prefixed
     ]
     chksum: str = get_sha1(''.join(chksum_segments))
@@ -178,12 +183,12 @@ def build_login_params(username: str, password: str, ip: str, token: str) -> dic
         'action': 'login',
         'username': username,
         'password': r'{MD5}' + password_md5,
-        'ac_id': constant_params['acid'],
+        'ac_id': constants['acid'],
         'ip': ip,
         'chksum': chksum,
         'info': encoded_info_prefixed,
-        'n': constant_params['n'],
-        'type': constant_params['type'],
+        'n': constants['n'],
+        'type': constants['type'],
         'os': 'Windows 10',
         'name': 'Windows',
         'double_stack': '0',
@@ -193,8 +198,8 @@ def build_login_params(username: str, password: str, ip: str, token: str) -> dic
 
 
 def request_login(params: dict) -> dict:
-    global BASE_URL, HEADERS
-    url = f'{BASE_URL}/cgi-bin/srun_portal'
+    global PORTAL_BASE_URL, HEADERS
+    url = f'{PORTAL_BASE_URL}/cgi-bin/srun_portal'
 
     # a HTML document, jsonp
     text: str = http_get(url, params=params, headers=HEADERS)
@@ -206,7 +211,7 @@ def request_login(params: dict) -> dict:
 
 
 def login(username: str, password: str):
-    global BASE_URL, HEADERS
+    global PORTAL_BASE_URL, HEADERS
 
     ip = request_ip()
     logger.info(f'ip is {ip}')
@@ -216,16 +221,20 @@ def login(username: str, password: str):
 
     params = build_login_params(username, password, ip, token)
     j = request_login(params)
+
     if j['ecode'] == 0:
         logger.info('login requested.')
         if j['suc_msg'] == 'login_ok':
             logger.info('login success!')
-            logger.info(f'ip is {j["online_ip"]}\n'
-                        f'username is {j["username"]}\n'
-                        f'real name is {j["real_name"]}')
+            logger.debug(f'online ip is {j["online_ip"]}, '
+                         f'username is {j["username"]}, '
+                         f'real name is {j["real_name"]}')
         elif j['suc_msg'] == 'ip_already_online_error':
             logger.error('login failed.')
             logger.error('server reported this ip is already online, cannot login twice.')
+        else:
+            logger.error('login failed, unknown error, response json as follows:')
+            logger.error(json.dumps(j, ensure_ascii=False, indent=4))
     else:
         logger.error('server denied login request, response json as follows:')
         logger.error(json.dumps(j, ensure_ascii=False, indent=4))
@@ -237,21 +246,21 @@ def request_client_id(username: str) -> str:
     Client id is used to logout from server.
     It was implemented by checking your ip in a list of all devices.
     '''
-    global BASE_URL, HEADERS
+    global PORTAL_BASE_URL, HEADERS
 
     this_ip = request_ip()
 
-    url = f'{BASE_URL}/v1/auth/device/get'
+    url = f'{PORTAL_BASE_URL}/v1/auth/device/get'
     params = {'user_name': username}
     text = http_get(url, params=params, headers=HEADERS)
 
     return text
 
 
-def request_logout(username:str):
+def request_logout(username: str):
     '''todo'''
-    global BASE_URL, HEADERS
-    url = f'{BASE_URL}/v1/auth/online_device/drop'
+    global PORTAL_BASE_URL, HEADERS
+    url = f'{PORTAL_BASE_URL}/v1/auth/online_device/drop'
     data = {
         'user_name': username,
         'drop_type': 'radius',
@@ -271,7 +280,7 @@ def request_logout(username:str):
         logger.error(json.dumps(j, indent=4, ensure_ascii=False))
 
 
-def logout(username:str):
+def logout(username: str):
     '''todo'''
     raise NotImplementedError
     # client_id :str = request_client_id(username)
